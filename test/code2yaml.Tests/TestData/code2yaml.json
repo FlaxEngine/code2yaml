@@ -2,6 +2,5 @@
   "input_paths": [ "./" ],
   "output_path": "./out",
   "exclude_paths": [ "./azure-sdk-for-java/azure-samples" ],
-  "language": "cplusplus",
-  "generate_private":  "true" 
+  "language": "cplusplus"
 }

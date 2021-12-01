@@ -34,8 +34,6 @@
         public const string CmdArgLanguage = "lang:";
         public const string Dot = ".";
 
-        public const string GeneratePrivate = "generate_private";
-
         public static class YamlMime
         {
             public const string YamlMimePrefix = "### YamlMime:";

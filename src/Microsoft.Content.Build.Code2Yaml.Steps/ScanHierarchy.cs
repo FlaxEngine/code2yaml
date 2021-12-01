@@ -56,7 +56,10 @@
             var itemsToRemove = new List<string>();
             foreach (var pair in _changeDict)
             {
-                using (var stream = File.OpenRead(Path.Combine(inputPath, pair.Value.File)))
+                var path = Path.Combine(inputPath, PathUtility.FilterPath(pair.Value.File));
+                if (!File.Exists(path))
+                    continue;
+                using (var stream = File.OpenRead(path))
                 {
                     HashSet<string> children = new HashSet<string>();
                     string parent = pair.Key;

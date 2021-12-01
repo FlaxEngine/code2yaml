@@ -70,13 +70,14 @@
         private TocItemYaml FromHierarchyChange(IReadOnlyDictionary<string, HierarchyChange> changeDict, HierarchyChange change, BuildContext context)
         {
             var parentChange = change.Parent != null ? changeDict[change.Parent] : null;
+            var children = change.Children ?? new HashSet<string>();
             return new TocItemYaml
             {
                 Uid = change.Uid,
                 Name = NameGenerator.GenerateTypeName(new NameGeneratorContext { CurrentChange = change, ParentChange = parentChange }, null, true),
-                Href = YamlUtility.ParseHrefFromChangeFile(change.File),
-                Items = change.Children.Any() ? new TocYaml(
-                from child in change.Children
+                Href = YamlUtility.ParseHrefFromChangeFile(PathUtility.FilterPath(change.File)),
+                Items = children.Any() ? new TocYaml(
+                from child in children
                 let toc = FromHierarchyChange(changeDict, changeDict[child], context)
                 orderby toc.Name.ToLower()
                 select toc) : null,

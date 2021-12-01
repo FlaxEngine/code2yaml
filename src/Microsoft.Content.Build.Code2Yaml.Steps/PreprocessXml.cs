@@ -211,7 +211,7 @@
                         fileName = formatedFileName;
                     }                                                         
                 }
-                doc.Save(Path.Combine(dirInfo.FullName, fileName + Path.GetExtension(p)));
+                doc.Save(Path.Combine(dirInfo.FullName, PathUtility.FilterPath(fileName) + Path.GetExtension(p)));
                 return Task.FromResult(1);
             });
             context.SetSharedObject(Constants.ExtendedIdMappings, extendedIdMaping);

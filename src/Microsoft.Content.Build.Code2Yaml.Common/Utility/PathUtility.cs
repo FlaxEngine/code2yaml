@@ -12,6 +12,11 @@
         private static readonly Regex UriWithProtocol = new Regex(@"^\w{2,}\:", RegexOptions.Compiled);
         private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
 
+        public static string FilterPath(string path)
+        {
+            return path.Replace('<', '_').Replace('>', '_').Replace('$', '_').Replace('*', '_');
+        }
+
         /// <summary>
         /// Creates a relative path from one file or folder to another.
         /// </summary>

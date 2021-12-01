@@ -59,7 +59,7 @@
             mainYaml.NameWithType = mainYaml.Name;
             mainYaml.FullNameWithoutTypeParameter = _nameGenerator.GenerateTypeFullName(nameContext, main, false);
             mainYaml.NameWithoutTypeParameter = _nameGenerator.GenerateTypeName(nameContext, main, false);
-            mainYaml.Href = YamlUtility.ParseHrefFromChangeFile(curChange.File);
+            mainYaml.Href = YamlUtility.ParseHrefFromChangeFile(PathUtility.FilterPath(curChange.File));
             mainYaml.Type = YamlUtility.ParseType(curChange.Type.ToString());
             mainYaml.Parent = curChange.Parent;
             mainYaml.Children = curChange.Children != null ? new List<string>(curChange.Children.OrderBy(c => c)) : new List<string>();

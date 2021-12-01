@@ -19,6 +19,7 @@ Here is a simple `code2yaml.json`.
 * `output_path`: output path
 * `exclude_paths`: an array of exclude paths. Code in the paths wouldn't be extracted metadata.
 * `language`: it now supports `cplusplus`, `java`.
+* `repo_remap`: remaps the repository urls
 * `doxygen_template_file`: custom Doxygen file template
 
 > *Note*

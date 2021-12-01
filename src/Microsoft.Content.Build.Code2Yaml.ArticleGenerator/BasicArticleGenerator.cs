@@ -45,6 +45,7 @@
             PageModel page = new PageModel() { Items = new List<ArticleItemYaml>() };
             ArticleItemYaml mainYaml = new ArticleItemYaml();
             page.Items.Add(mainYaml);
+            ConfigModel config = (ConfigModel)context.GetSharedObject(Constants.Config);
 
             var articleContext = new ArticleContext(context);
             HierarchyChange curChange = articleContext.CurrentChange;
@@ -98,7 +99,7 @@
                         memberYaml.Parent = mainYaml.Uid;
                         FillSummary(memberYaml, member);
                         FillRemarks(memberYaml, member);
-                        FillSource(memberYaml, member);
+                        FillSource(memberYaml, member, config);
                         FillSees(memberYaml, member);
                         FillException(memberYaml, member);
                         FillOverridden(memberYaml, member);
@@ -310,7 +311,7 @@
             yaml.Overridden = node.NullableElement("reimplements").NullableAttribute("refid").NullableValue();
         }
 
-        protected void FillSource(ArticleItemYaml yaml, XElement node)
+        protected void FillSource(ArticleItemYaml yaml, XElement node, ConfigModel config)
         {
             var location = node.NullableElement("location");
             if (!location.IsNull())
@@ -331,6 +332,8 @@
                     Path = relativePath,
                     StartLine = startLine,
                 };
+                if (yaml.Source.Remote.RemoteRepositoryUrl != null && config.RepoRemap != null && config.RepoRemap.ContainsKey(yaml.Source.Remote.RemoteRepositoryUrl))
+                    yaml.Source.Remote.RemoteRepositoryUrl = config.RepoRemap[yaml.Source.Remote.RemoteRepositoryUrl];
             }
         }
 

@@ -6,6 +6,7 @@
         public const string OutputPath = "output_path";
         public const string ExcludePaths = "exclude_paths";
         public const string Language = "language";
+        public const string DoxygenTemplateFile = "doxygen_template_file";
         public const string ServiceMapping = "service_mapping";
         public const string GenerateTocMDFile = "generate_toc_md";
         public const string Config = "config";

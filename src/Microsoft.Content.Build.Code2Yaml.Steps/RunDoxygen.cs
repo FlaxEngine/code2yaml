@@ -108,7 +108,8 @@
             using (var sw = new StreamWriter(doxyfile))
             using (var writer = new DoxyfileWriter(sw))
             {
-                var content = DoxyfileParser.ParseDoxyfile(typeof(RunDoxygen).Assembly.GetManifestResourceStream(DoxyFileTemplate));
+                Stream templateFileStream = string.IsNullOrEmpty(config.DoxygenTemplateFile) ? typeof(RunDoxygen).Assembly.GetManifestResourceStream(DoxyFileTemplate) : new FileStream(config.DoxygenTemplateFile, FileMode.Open, FileAccess.Read);
+                var content = DoxyfileParser.ParseDoxyfile(templateFileStream);
 
                 // update with config
                 content[Constants.Doxyfile.INPUT] = (from i in config.InputPaths

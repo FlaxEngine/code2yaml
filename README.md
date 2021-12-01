@@ -21,6 +21,7 @@ Here is a simple `code2yaml.json`.
 * `language`: it now supports `cplusplus`, `java`.
 * `repo_remap`: remaps the repository urls
 * `doxygen_template_file`: custom Doxygen file template
+* `assembly`: override assembly name entry
 
 > *Note*
 

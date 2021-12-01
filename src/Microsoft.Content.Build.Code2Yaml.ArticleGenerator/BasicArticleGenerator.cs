@@ -64,6 +64,8 @@
             mainYaml.Type = YamlUtility.ParseType(curChange.Type.ToString());
             mainYaml.Parent = curChange.Parent;
             mainYaml.Children = curChange.Children != null ? new List<string>(curChange.Children.OrderBy(c => c)) : new List<string>();
+            if (!string.IsNullOrEmpty(config.Assembly))
+                mainYaml.AssemblyNameList = new List<string>() { config.Assembly };
             FillSummary(mainYaml, main);
             FillRemarks(mainYaml, main);
             FillSource(mainYaml, main);

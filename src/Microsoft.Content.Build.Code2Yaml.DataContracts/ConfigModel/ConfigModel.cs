@@ -18,17 +18,26 @@
         [JsonProperty(Constants.Language)]
         public string Language { get; set; } = "java";
 
+        [JsonProperty(Constants.Assembly)]
+        public string Assembly { get; set; }
+
         [JsonProperty(Constants.GenerateTocMDFile)]
         public bool GenerateTocMDFile { get; set; } = false;
-
-        [JsonProperty(Constants.GeneratePrivate)]
-        public bool GenerateDocForPrivateParts { get; set; } = false;
 
         [JsonProperty(Constants.ExcludePaths)]
         public List<string> ExcludePaths { get; set; }
 
+        [JsonProperty(Constants.ExcludeTypes)]
+        public List<string> ExcludeTypes { get; set; }
+
         [JsonProperty(Constants.ServiceMapping)]
         public ServiceMappingConfig ServiceMappingConfig { get; set; }
+
+        [JsonProperty(Constants.DoxygenTemplateFile)]
+        public string DoxygenTemplateFile { get; set; }
+
+        [JsonProperty("repo_remap")]
+        public Dictionary<string, string> RepoRemap { get; set; }
 
         public int DoxygenTimeout { get; set; }  = 300000; // InMilliseconds 5 minutes
     }

@@ -1,8 +1,6 @@
 ﻿namespace Microsoft.Content.Build.Code2Yaml.DataContracts
 {
     using System;
-    using System.Collections.Generic;
-    using YamlDotNet.Core;
     using YamlDotNet.Serialization;
 
     [Serializable]
@@ -10,6 +8,9 @@
     {
         [YamlMember(Alias = "uid")]
         public string Uid { get; set; }
+
+        [YamlMember(Alias = "commentId")]
+        public string CommentId { get; set; }
 
         [YamlMember(Alias = "parent")]
         public string Parent { get; set; }
@@ -31,23 +32,5 @@
 
         [YamlMember(Alias = "fullName")]
         public string FullName { get; set; }
-
-        [YamlMember(Alias = "type")]
-        public MemberType? Type { get; set; }
-
-        [YamlMember(Alias = "spec.cplusplus")]
-        public List<SpecViewModel> SpecForCpp { get; set; }
-
-        [YamlMember(Alias = "spec.java")]
-        public List<SpecViewModel> SpecForJava { get; set; }
-
-        [YamlMember(Alias = "summary", ScalarStyle = ScalarStyle.DoubleQuoted)]
-        public string Summary { get; set; }
-
-        [YamlMember(Alias = "syntax")]
-        public SyntaxDetailViewModel Syntax { get; set; }
-
-        [YamlMember(Alias = "package")]
-        public string PackageName { get; set; }
     }
 }

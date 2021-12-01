@@ -46,6 +46,7 @@
             ArticleItemYaml mainYaml = new ArticleItemYaml();
             page.Items.Add(mainYaml);
             ConfigModel config = (ConfigModel)context.GetSharedObject(Constants.Config);
+            var infoDict = (IReadOnlyDictionary<string, ArticleItemYaml>)context.GetSharedObject(Constants.ArticleItemYamlDict);
 
             var articleContext = new ArticleContext(context);
             HierarchyChange curChange = articleContext.CurrentChange;
@@ -57,6 +58,8 @@
             mainYaml.SupportedLanguages = new string[] { Language };
             mainYaml.FullName = _nameGenerator.GenerateTypeFullName(nameContext, main, true);
             mainYaml.Name = _nameGenerator.GenerateTypeName(nameContext, main, true);
+            if (YamlUtility.SkipTypeFilter(config, mainYaml.Name))
+                return Task.FromResult((PageModel)null);
             mainYaml.NameWithType = mainYaml.Name;
             mainYaml.FullNameWithoutTypeParameter = _nameGenerator.GenerateTypeFullName(nameContext, main, false);
             mainYaml.NameWithoutTypeParameter = _nameGenerator.GenerateTypeName(nameContext, main, false);
@@ -68,8 +71,10 @@
                 mainYaml.AssemblyNameList = new List<string>() { config.Assembly };
             FillSummary(mainYaml, main);
             FillRemarks(mainYaml, main);
-            FillSource(mainYaml, main);
+            if (mainYaml.Type != MemberType.Namespace)
+                FillSource(mainYaml, main, config);
             FillSees(mainYaml, main);
+            FillSeeAlsos(mainYaml, main);
             FillException(mainYaml, main);
             FillInheritance(nameContext, mainYaml, main);
             FillSyntax(mainYaml, main, isMain: true);
@@ -96,10 +101,13 @@
                         memberYaml.Href = mainYaml.Href;
                         memberYaml.Type = string.IsNullOrEmpty(member.NullableElement("type").NullableValue()) && tuple.Item1.Value == MemberType.Method ? MemberType.Constructor : tuple.Item1.Value;
                         memberYaml.Parent = mainYaml.Uid;
+                        if (memberYaml.Type == MemberType.Field && memberYaml.FullName.StartsWith("union "))
+                            continue; // Ignore C++ unions
                         FillSummary(memberYaml, member);
                         FillRemarks(memberYaml, member);
                         FillSource(memberYaml, member, config);
                         FillSees(memberYaml, member);
+                        FillSeeAlsos(memberYaml, member);
                         FillException(memberYaml, member);
                         FillOverridden(memberYaml, member);
                         FillSyntax(memberYaml, member, isMain: false);
@@ -123,12 +131,8 @@
                 }
             }
 
-            mainYaml.Children.AddRange(from p in members
-                                       orderby p.Value.Name.ToLower()
-                                       select p.Key);
-            page.Items.AddRange(from i in members.Values
-                                orderby i.Name.ToLower()
-                                select i);
+            mainYaml.Children.AddRange(from p in members orderby p.Value.Name.ToLower() select p.Key);
+            page.Items.AddRange(from i in members.Values orderby i.Name.ToLower() select i);
 
             // after children are filled, fill inherited members
             FillInheritedMembers(mainYaml, main);
@@ -146,6 +150,38 @@
             {
                 mainItem.Syntax.Content += _declarationGenerator.GenerateInheritImplementString(infoDict, mainItem);
             }
+
+            foreach (var item in page.Items)
+            {
+                if (item.Type == MemberType.Class || item.Type == MemberType.Struct)
+                {
+                    // Redirect nested types into namespaces
+                    while (!string.IsNullOrEmpty(item.Parent) && infoDict.TryGetValue(item.Parent, out var parent) && parent.Type != MemberType.Namespace)
+                    {
+                        item.Parent = parent.Parent;
+                    }
+
+                    // Remove any missing or invalid types
+                    if (item.Children != null)
+                    {
+                        for (int i = item.Children.Count - 1; i >= 0; i--)
+                        {
+                            if (infoDict.TryGetValue(item.Children[i], out var child))
+                            {
+                                if (child.Type == MemberType.Class || child.Type == MemberType.Struct)
+                                {
+                                    item.Children.RemoveAt(i);
+                                }
+                            }
+                            else
+                            {
+                                item.Children.RemoveAt(i);
+                            }
+                        }
+                    }
+                }
+            }
+
             return Task.FromResult(1);
         }
 
@@ -174,7 +210,6 @@
                 Name = RemoveArgs(yaml.Name),
                 FullName = RemoveArgs(yaml.FullName),
                 NameWithType = RemoveArgs(yaml.NameWithType),
-                PackageName = yaml.PackageName,
             };
             _references.Add(reference);
             return uid;
@@ -233,11 +268,17 @@
             {
                 syntax.TypeParameters = templateParamList.Elements("param").Select(
                     p =>
-                    new ApiParameter
                     {
-                        Name = p.NullableElement("type").NullableValue(),
-                        Type = ParseType(p.NullableElement("type")),
-                        Description = ParseParameterDescription(node.NullableElement("detaileddescription"), "<" + p.NullableElement("type").NullableValue() + ">")
+                        var type = p.NullableElement("type").NullableValue();
+                        var name = p.NullableElement("declname").NullableValue();
+                        if (string.IsNullOrEmpty(name))
+                            name = type;
+                        return new ApiParameter
+                        {
+                            Name = name,
+                            Type = ParseType(p.NullableElement("type")),
+                            Description = ParseParameterDescription(node.NullableElement("detaileddescription"), name)
+                        };
                     }).ToList();
             }
         }
@@ -305,6 +346,16 @@
                          }).ToList();
         }
 
+        protected void FillSeeAlsos(ArticleItemYaml yaml, XElement node)
+        {
+            var sees = node.XPathSelectElements("detaileddescription/para/simplesect[@kind='see']");
+            yaml.SeeAlsos = (from see in sees
+                         select new LinkInfo
+                         {
+                             LinkId = see.NullableElement("para").NullableValue()
+                         }).ToList();
+        }
+
         protected void FillOverridden(ArticleItemYaml yaml, XElement node)
         {
             yaml.Overridden = node.NullableElement("reimplements").NullableAttribute("refid").NullableValue();
@@ -333,12 +384,18 @@
                 };
                 if (yaml.Source.Remote.RemoteRepositoryUrl != null && config.RepoRemap != null && config.RepoRemap.ContainsKey(yaml.Source.Remote.RemoteRepositoryUrl))
                     yaml.Source.Remote.RemoteRepositoryUrl = config.RepoRemap[yaml.Source.Remote.RemoteRepositoryUrl];
+                yaml.FilePath = relativePath;
+                if (!string.IsNullOrEmpty(yaml.FilePath) && yaml.FilePath.StartsWith("Source/"))
+                {
+                    // Flax hardcoded paths
+                    yaml.FilePath = yaml.FilePath.Substring("Source/".Length);
+                }
             }
         }
 
         protected void FillHeader(ArticleItemYaml yaml, XElement node)
         {
-            var location = node.NullableElement("location");
+            /*var location = node.NullableElement("location");
             if (!location.IsNull())
             {
                 string headerPath = location.NullableAttribute("file").NullableValue();
@@ -352,15 +409,13 @@
                     Path = relativePath,
                     StartLine = headerStartline,
                 };
-            }
+            }*/
         }
 
         protected void FillInheritance(NameGeneratorContext context, ArticleItemYaml yaml, XElement node)
         {
             if (yaml.Type == MemberType.Interface)
-            {
                 return;
-            }
 
             var nodeIdHash = new Dictionary<string, string>();
             var idHash = new Dictionary<string, List<string>>();
@@ -401,7 +456,10 @@
             var allMembers = from m in node.NullableElement("listofallmembers").Elements("member")
                              where !YamlUtility.IsFiltered(m.NullableAttribute("prot").NullableValue())
                              select m.NullableAttribute("refid").NullableValue();
-            yaml.InheritedMembers = allMembers.Except(yaml.Children).ToList();
+            if (yaml.Children != null && yaml.Children.Count > 0)
+                yaml.InheritedMembers = allMembers.Except(yaml.Children).ToList();
+            else
+                yaml.InheritedMembers = allMembers.ToList();
             _references.AddRange(yaml.InheritedMembers.Select(i => new ReferenceViewModel { Uid = i }));
         }
 
@@ -440,6 +498,21 @@
             var param = detailedDescription.XPathSelectElement(string.Format("para/parameterlist[@kind='param']/parameteritem[parameternamelist/parametername[text() = '{0}']]/parameterdescription", name));
             if (param == null)
             {
+                var list = detailedDescription.XPathSelectElement("para/parameterlist[@kind='templateparam']");
+                if (list != null)
+                {
+                    foreach (var item in list.Nodes())
+                    {
+                        var itemName = item.XPathSelectElement("parameternamelist/parametername");
+                        var itemDesc = item.XPathSelectElement("parameterdescription");
+                        if (itemName != null && itemDesc != null)
+                        {
+                            var value = itemName.Value;
+                            if (value == name || "typename " + value == name)
+                                return itemDesc.Value;
+                        }
+                    }
+                }
                 return null;
             }
             return param.NullableInnerXml();
@@ -484,14 +557,30 @@
                 return type.NullableValue();
             }
 
+            // Filter value to remove any C++ specifiers
+            var typeName = type.Value;
+            typeName = YamlUtility.PostprocessCppCodeStyle(typeName);
+            typeName = typeName.Replace("const ", "");
+            typeName = typeName.Replace("&& ", "");
+            typeName = typeName.Replace("& ", "");
+            type.Value = typeName;
+
             List<SpecViewModel> specs = (from node in type.CreateNavigator().Select("node()").Cast<XPathNavigator>()
                                          select node.Name == "ref" ? new SpecViewModel { Uid = node.GetAttribute("refid", string.Empty), IsExternal = false, } : new SpecViewModel { Name = node.Value, FullName = node.Value }).ToList();
-
+            for (int i = specs.Count - 1; i >= 0; i--)
+            {
+                if (string.IsNullOrEmpty(specs[i].Uid))
+                    specs.RemoveAt(i);
+            }
             if (specs.Count == 1 && specs[0].Uid != null)
             {
                 return specs[0].Uid;
             }
             string uid = string.Concat(specs.Select(spec => spec.Uid ?? StringUtility.ComputeHash(spec.Name)));
+            if (string.IsNullOrEmpty(uid))
+            {
+                uid = typeName.Replace("*", "").Replace("&", "").Trim();
+            }
             _references.Add(CreateReferenceWithSpec(uid, specs));
             return uid;
         }
@@ -570,6 +659,10 @@
             if (yaml.Sees != null && yaml.Sees.Count == 0)
             {
                 yaml.Sees = null;
+            }
+            if (yaml.SeeAlsos != null && yaml.SeeAlsos.Count == 0)
+            {
+                yaml.SeeAlsos = null;
             }
             if (yaml.Syntax != null && yaml.Syntax.Parameters != null && yaml.Syntax.Parameters.Count == 0)
             {

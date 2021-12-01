@@ -18,7 +18,7 @@
             string prot = node.NullableAttribute("prot").NullableValue();
             if (prot != null)
             {
-                sb.Append($"{prot}: ");
+                sb.Append(prot + " ");
             }
             string virt = node.NullableAttribute("virt").NullableValue();
             if (virt == "virtual" || virt == "pure-virtual")
@@ -33,12 +33,34 @@
             string kind = node.NullableAttribute("kind").NullableValue();
             if (kind != null)
             {
-                sb.Append(string.Format("{0} ", kind));
+                sb.Append(kind + " ");
             }
             var name = node.NullableElement("compoundname").Value;
             int index = name.LastIndexOf(Constants.NameSpliter);
             string innerName = name.Substring(index < 0 ? 0 : index + Constants.NameSpliter.Length);
             sb.Append(kind == "namespace" ? name : innerName);
+            var templateParams = node.NullableElement("templateparamlist");
+            if (templateParams != null)
+            {
+                var p = templateParams.Elements("param").ToArray();
+                if (p.Length != 0)
+                {
+                    sb.Append("<");
+                    for (int i = 0; i < p.Length; i++)
+                    {
+                        if (i != 0)
+                            sb.Append(", ");
+                        var n = p[i].Element("type").Value.ToString();
+                        var split = n.LastIndexOf(' ');
+                        if (split != -1)
+                            n = n.Remove(0, split + 1);
+                        if (p[i].Element("declname") != null)
+                            n = p[i].Element("declname").Value.ToString();
+                        sb.Append(n);
+                    }
+                    sb.Append(">");
+                }
+            }
             return sb.ToString();
         }
 
@@ -48,7 +70,7 @@
             string prot = node.NullableAttribute("prot").NullableValue();
             if (prot != null)
             {
-                sb.Append($"{prot}: ");
+                sb.Append(prot + " ");
             }
             string virt = node.NullableAttribute("virt").NullableValue();
             if (virt == "virtual" || virt == "pure-virtual")
@@ -82,23 +104,21 @@
                 sb.Append(initializer);
             }
 
-            return sb.ToString();
+            return YamlUtility.PostprocessCppCodeStyle(sb.ToString());
         }
 
         public override string GenerateInheritImplementString(IReadOnlyDictionary<string, ArticleItemYaml> articleDict, ArticleItemYaml yaml)
         {
             if (yaml.ImplementsOrInherits == null || yaml.ImplementsOrInherits.Count == 0)
-            {
                 return string.Empty;
-            }
             List<string> extends = new List<string>();
             foreach (var ele in yaml.ImplementsOrInherits)
             {
                 ArticleItemYaml eleYaml;
                 if (articleDict.TryGetValue(ele.Type, out eleYaml))
                 {
-                    string parent = eleYaml.Parent != null ? articleDict[eleYaml.Parent].FullName : string.Empty;
-                    string name = YamlUtility.ParseNameFromFullName(HierarchyType.Class, parent, ele.SpecializedFullName);
+                    var name = eleYaml.FullName;
+                    //string name = YamlUtility.ParseNameFromFullName(HierarchyType.Class, eleYaml.FullName, ele.SpecializedFullName);
                     extends.Add(name);
                 }
             }
@@ -106,13 +126,14 @@
             var builder = new StringBuilder();
             if (extends.Count > 0)
             {
-                builder.Append($" : public {extends[0]}");
-                foreach (var ex in extends.Skip(1))
+                builder.Append(" : public ");
+                for (int i = 0; i < extends.Count; i++)
                 {
-                    builder.Append($", public {ex}");
+                    if (i != 0)
+                        builder.Append(", public ");
+                    builder.Append(extends[i]);
                 }
             }
-
             return builder.ToString();
         }
     }

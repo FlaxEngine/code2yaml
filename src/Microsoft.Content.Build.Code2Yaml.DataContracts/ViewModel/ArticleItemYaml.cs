@@ -12,6 +12,9 @@
         [YamlMember(Alias = "uid")]
         public string Uid { get; set; }
 
+        [YamlMember(Alias = "commentId")]
+        public string CommentId { get; set; }
+
         [YamlMember(Alias = "id")]
         public string Id { get; set; }
 
@@ -56,17 +59,11 @@
         [YamlMember(Alias = "documentation")]
         public SourceDetail Documentation { get; set; }
 
-        [YamlMember(Alias = "header")]
-        public SourceDetail Header { get; set; }
-
         [YamlMember(Alias = "assemblies")]
         public List<string> AssemblyNameList { get; set; }
 
         [YamlMember(Alias = "namespace")]
         public string NamespaceName { get; set; }
-
-        [YamlMember(Alias = "package")]
-        public string PackageName { get; set; }
 
         [YamlMember(Alias = "summary", ScalarStyle = ScalarStyle.DoubleQuoted)]
         public string Summary { get; set; }
@@ -87,13 +84,12 @@
         public List<CrefInfo> Exceptions { get; set; }
 
         [YamlMember(Alias = "seealso")]
-        public List<CrefInfo> SeeAlsos { get; set; }
+        public List<LinkInfo> SeeAlsos { get; set; }
 
         [YamlMember(Alias = "see")]
         public List<CrefInfo> Sees { get; set; }
 
         [YamlMember(Alias = "inheritance")]
-        //public Dictionary<string, List<string>> Inheritance { get; set; }
         public List<string> Inheritance { get; set; }
 
         [YamlMember(Alias = "inheritedMembers")]
@@ -101,6 +97,12 @@
 
         [YamlMember(Alias = "conceptual")]
         public string Conceptual { get; set; }
+
+        [YamlMember(Alias = "filepath")]
+        public string FilePath { get; set; }
+
+        [YamlMember(Alias = "_lang")]
+        public string Lang { get; set; } = "cpp";
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [YamlIgnore]

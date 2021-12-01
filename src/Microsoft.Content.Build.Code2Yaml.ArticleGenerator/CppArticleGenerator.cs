@@ -36,16 +36,12 @@
             return new ReferenceViewModel
             {
                 Uid = uid,
-                SpecForCpp = specs,
             };
         }
 
         protected override IEnumerable<string> GetDefaultInheritance(ArticleItemYaml yaml)
         {
-            if (yaml.Type == MemberType.Class)
-            {
-                yield return "System::Object";
-            }
+            return new string[0];
         }
     }
 }

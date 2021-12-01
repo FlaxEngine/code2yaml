@@ -21,9 +21,6 @@
         [YamlIgnore]
         public string LocalWorkingDirectory { get; set; }
 
-        [YamlMember(Alias = "key")]
-        public string Description { get; set; }
-
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
@@ -40,7 +37,7 @@
 
         public override string ToString()
         {
-            return string.Format("branch: {0}, url: {1}, local: {2}, desc: {3}, file: {4}", RemoteBranch, RemoteRepositoryUrl, LocalWorkingDirectory, Description, RelativePath);
+            return string.Format("branch: {0}, url: {1}, local: {2}, file: {3}", RemoteBranch, RemoteRepositoryUrl, LocalWorkingDirectory, RelativePath);
         }
     }
 }

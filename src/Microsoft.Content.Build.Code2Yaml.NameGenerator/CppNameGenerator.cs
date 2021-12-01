@@ -10,22 +10,22 @@
     {
         public override string GenerateTypeFullName(NameGeneratorContext context, XElement node, bool withTypeParameters)
         {
-            return context.CurrentChange.Name;
+            return YamlUtility.PostprocessCppCodeStyle(context.CurrentChange.Name);
         }
 
         public override string GenerateTypeName(NameGeneratorContext context, XElement node, bool withTypeParameters)
         {
-            return YamlUtility.ParseNameFromFullName(context.CurrentChange.Type, context.ParentChange?.Name, context.CurrentChange.Name);
+            return YamlUtility.PostprocessCppCodeStyle(YamlUtility.ParseNameFromFullName(context.CurrentChange.Type, context.ParentChange?.Name, context.CurrentChange.Name));
         }
 
         public override string GenerateMemberFullName(NameGeneratorContext context, XElement node)
         {
-            return YamlUtility.ParseMemberName(node.NullableElement("definition").NullableValue(), node.NullableElement("argsstring").NullableValue());
+            return YamlUtility.PostprocessCppCodeStyle(YamlUtility.ParseMemberName(node.NullableElement("definition").NullableValue(), node.NullableElement("argsstring").NullableValue()));
         }
 
         public override string GenerateMemberName(NameGeneratorContext context, XElement node)
         {
-            return YamlUtility.ParseMemberName(node.NullableElement("name").NullableValue(), node.NullableElement("argsstring").NullableValue());
+            return YamlUtility.PostprocessCppCodeStyle(YamlUtility.ParseMemberName(node.NullableElement("name").NullableValue(), node.NullableElement("argsstring").NullableValue()));
         }
 
         public override string GenerateMemberNameWithType(string memberName, string typeName)

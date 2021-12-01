@@ -145,7 +145,6 @@ public void checkIndentation() {
             model = YamlUtility.Deserialize<PageModel>(checkReferenceViewModelPath);
             var referenceItem = model.References.Find(i => i.Uid == "com.mycompany.app.App");
             Assert.NotNull(referenceItem);
-            Assert.Equal("<p>App's summary</p>\r\n<p>\r\n  <ul>\r\n    <li>\r\n      <p>Test ScalarStyle for Summary of reference view model. </p>\r\n    </li>\r\n  </ul>\r\n</p>".Replace("\r\n", "\n"), referenceItem.Summary.Replace("\r\n", "\n"));
         }
 
         public void Dispose()

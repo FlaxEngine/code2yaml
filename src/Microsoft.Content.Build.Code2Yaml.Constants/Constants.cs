@@ -5,8 +5,10 @@
         public const string InputPaths = "input_paths";
         public const string OutputPath = "output_path";
         public const string ExcludePaths = "exclude_paths";
+        public const string ExcludeTypes = "exclude_types";
         public const string Language = "language";
         public const string DoxygenTemplateFile = "doxygen_template_file";
+        public const string Assembly = "assembly";
         public const string ServiceMapping = "service_mapping";
         public const string GenerateTocMDFile = "generate_toc_md";
         public const string Config = "config";
@@ -20,6 +22,7 @@
         public const string RenamedFormat = "{0}({1})";
         public const string ExtendedIdMappings = "extended_id_mappings";
         public const string Changes = "changes";
+        public const string Pages = "pages";
         public const string CurrentChange = "cur_change";
         public const string ParentChange = "parent_change";
         public const string ArticleItemYamlDict = "article_item_yaml_dict";

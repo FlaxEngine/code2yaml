@@ -5,15 +5,24 @@
     [Serializable]
     public enum MemberType
     {
+        Default,
+        Toc,
+        Assembly,
         Namespace,
         Class,
+        Interface,
         Struct,
+        Delegate,
         Enum,
         Field,
-        Method,//MemberFunction
-        //Friend,
-        Interface,
+        Property,
+        Event,
         Constructor,
+        Method,
+        Operator,
+        Container,
+        AttachedEvent,
+        AttachedProperty
     }
 
     [Flags]

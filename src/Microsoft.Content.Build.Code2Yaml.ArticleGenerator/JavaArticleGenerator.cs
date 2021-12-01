@@ -25,7 +25,7 @@
         {
             HierarchyChange curChange = context.CurrentChange;
             HierarchyChange parentChange = context.ParentChange;
-            yaml.PackageName = parentChange?.Uid;
+            //yaml.PackageName = parentChange?.Uid;
         }
 
         protected override ReferenceViewModel CreateReferenceWithSpec(string uid, List<SpecViewModel> specs)
@@ -33,7 +33,6 @@
             return new ReferenceViewModel
             {
                 Uid = uid,
-                SpecForJava = specs,
             };
         }
 

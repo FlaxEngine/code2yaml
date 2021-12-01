@@ -100,5 +100,34 @@
             }
             return prot.Contains("private") || prot.Contains("package");
         }
+
+        public static string PostprocessCppCodeStyle(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+                return code;
+            code = code.Replace("FORCE_INLINE ", "");
+            code = code.Replace("=default", " = default");
+            code = code.Replace("=0", "= 0");
+            code = code.Replace("= ", " = ");
+            code = code.Replace(" *&", "*& ");
+            code = code.Replace(" &&", "&& ");
+            code = code.Replace(" &", "& ");
+            code = code.Replace(" *", "* ");
+            code = code.Replace("  ", " ");
+            return code;
+        }
+
+        public static bool SkipTypeFilter(ConfigModel config, string type)
+        {
+            if (config.ExcludeTypes != null)
+            {
+                foreach (var filter in config.ExcludeTypes)
+                {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(type, filter))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }

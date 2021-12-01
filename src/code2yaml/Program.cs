@@ -30,12 +30,9 @@
                 new RunDoxygen(),
                 new PreprocessXml(),
                 new ScanHierarchy(),
-                new TaskParallel(
-                    new List<IStep>
-                    {
-                        new GenerateToc { NameGenerator = NameGeneratorFactory.Create(_config.Language) },
-                        new GenerateArticles { Generator = ArticleGeneratorFactory.Create(_config.Language) },
-                    }));
+                new GenerateArticles { Generator = ArticleGeneratorFactory.Create(_config.Language) },
+                new GenerateToc { NameGenerator = NameGeneratorFactory.Create(_config.Language) }
+            );
             var status = 1;
             var watch = Stopwatch.StartNew();
             try

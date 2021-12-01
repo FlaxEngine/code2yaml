@@ -7,5 +7,6 @@
         Struct,
         Enum,
         Interface,
+        File,
     }
 }

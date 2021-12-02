@@ -16,8 +16,10 @@
 
     public class RunDoxygen : IStep
     {
-        private static readonly string DoxygenLocation = "tools/doxygen.exe";
+        private static readonly string DoxygenLocationWindows = "tools/doxygen.exe";
+        private static readonly string DoxygenLocationLinux = "tools/doxygen";
         private static readonly string DoxyFileTemplate = $"{typeof(RunDoxygen).Assembly.GetName().Name}.template.DoxyfileTemplate";
+        private static bool IsLinux => Type.GetType("Mono.Runtime") != null;
 
         public string StepName
         {
@@ -37,7 +39,8 @@
 
                 using (var doxygenProcess = new Process())
                 {
-                    doxygenProcess.StartInfo.FileName = DoxygenLocation;
+                    var doxyGenLocation = IsLinux ? DoxygenLocationLinux : DoxygenLocationWindows;
+                    doxygenProcess.StartInfo.FileName = Path.Combine(Path.GetDirectoryName(typeof(RunDoxygen).Assembly.Location), doxyGenLocation);
                     doxygenProcess.StartInfo.UseShellExecute = false;
                     doxygenProcess.StartInfo.CreateNoWindow = true;
                     doxygenProcess.StartInfo.Arguments = doxyFile;
@@ -112,6 +115,21 @@
                 var content = DoxyfileParser.ParseDoxyfile(templateFileStream);
 
                 // update with config
+                var inputFilter = content[Constants.Doxyfile.INPUT_FILTER].ToString();
+                if (!string.IsNullOrEmpty(inputFilter))
+                {
+                    if (IsLinux)
+                    {
+                        inputFilter = inputFilter.Replace('\\', '/');
+                        if (!inputFilter.StartsWith("mono ") && inputFilter.Contains(".exe"))
+                            inputFilter = "\"mono " + inputFilter + "\"";
+                    }
+                    else
+                    {
+                        inputFilter = inputFilter.Replace('/', '\\');
+                    }
+                    content[Constants.Doxyfile.INPUT_FILTER] = inputFilter;
+                }
                 content[Constants.Doxyfile.INPUT] = (from i in config.InputPaths
                                                      select PathUtility.MakeRelativePath(Environment.CurrentDirectory, Path.GetFullPath(i))).ToList();
                 content[Constants.Doxyfile.OUTPUT_DIRECTORY] = PathUtility.MakeRelativePath(Environment.CurrentDirectory, Path.GetFullPath(intermediateFolder));

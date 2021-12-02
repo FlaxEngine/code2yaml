@@ -49,6 +49,7 @@
             public const string INPUT = "INPUT";
             public const string OUTPUT_DIRECTORY = "OUTPUT_DIRECTORY";
             public const string EXCLUDE = "EXCLUDE";
+            public const string INPUT_FILTER = "INPUT_FILTER";
         }
 
         public static class ServiceMappingConfig

@@ -23,6 +23,9 @@
     <EmbeddedResource Include="template\DoxyfileTemplate" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="tools\doxygen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="tools\doxygen.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
